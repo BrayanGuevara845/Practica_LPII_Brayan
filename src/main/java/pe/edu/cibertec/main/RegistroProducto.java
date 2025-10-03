@@ -1,36 +1,41 @@
 package pe.edu.cibertec.main;
 
-import pe.edu.cibertec.dao.ProductoDAO;
-import pe.edu.cibertec.dao.CategoriaDAO;
-import pe.edu.cibertec.entity.Categoria;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import pe.edu.cibertec.entity.Producto;
-
+import pe.edu.cibertec.entity.Categoria;
 import java.util.Scanner;
 
 public class RegistroProducto {
     public static void main(String[] args) {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("LPII_PU");
+        EntityManager em = emf.createEntityManager();
         Scanner sc = new Scanner(System.in);
-        CategoriaDAO catDao = new CategoriaDAO();
-        ProductoDAO prodDao = new ProductoDAO();
 
-        System.out.print("Ingrese nombre de la categoría: ");
-        String nomCat = sc.nextLine();
-        Categoria cat = new Categoria();
-        cat.setNombre(nomCat);
-        catDao.guardarCategoria(cat);
+        System.out.print("Nombre del producto: ");
+        String nombre = sc.nextLine();
 
-        System.out.print("Ingrese nombre del producto: ");
-        String nomProd = sc.nextLine();
-        System.out.print("Ingrese precio del producto: ");
-        float precio = sc.nextFloat();
+        System.out.print("Precio del producto: ");
+        double precio = sc.nextDouble();
 
-        Producto prod = new Producto();
-        prod.setNombre(nomProd);
-        prod.setPrecio(precio);
-        prod.setCategoria(cat);
-
-        prodDao.guardarProducto(prod);
-
-        System.out.println("Producto registrado correctamente con su categoría.");
+        try {
+            em.getTransaction().begin();
+            Categoria cat = em.find(Categoria.class, 1);
+            Producto p = new Producto();
+            p.setNombre(nombre);
+            p.setPrecio(precio);
+            p.setCategoria(cat);
+            em.persist(p);
+            em.getTransaction().commit();
+            System.out.println("Producto registrado con éxito!");
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            System.out.println("Error al registrar el producto.");
+        } finally {
+            em.close();
+            emf.close();
+        }
     }
 }
+
